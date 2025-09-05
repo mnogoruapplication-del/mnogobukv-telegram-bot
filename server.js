@@ -110,20 +110,53 @@ bot.on('callback_query', (callbackQuery) => {
     const data = callbackQuery.data;
     const chatId = message.chat.id;
     
-    bot.answerCallbackQuery(callbackQuery.id);
+    console.log('🎯 Получен callback:', data);  // Для отладки
     
     switch(data) {
         case 'help':
             sendHelpMessage(chatId);
+            bot.answerCallbackQuery(callbackQuery.id, {text: "Помощь отправлена!"});
             break;
         case 'balance':
-            bot.emit('text', {...message, text: '/balance'});
+            bot.sendMessage(chatId, `
+💰 **Проверка баланса**
+
+Для просмотра актуального баланса:
+1️⃣ Откройте игру
+2️⃣ Авторизуйтесь номером карты  
+3️⃣ Баланс отобразится в приложении
+
+🎯 Играйте и зарабатывайте бонусы!
+            `, {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [[
+                        {text: '🎮 Открыть игру', web_app: {url: process.env.GAME_URL}}
+                    ]]
+                }
+            });
+            bot.answerCallbackQuery(callbackQuery.id, {text: "Инструкция по балансу!"});
             break;
         case 'support':
-            bot.emit('text', {...message, text: '/support'});
+            bot.sendMessage(chatId, `
+🆘 **Техническая поддержка**
+
+📞 **Контакты:**
+• Email: support@club.com
+• Время: Пн-Пт 9:00-18:00
+
+❓ **Частые проблемы:**
+• Не работает авторизация? Проверьте номер карты
+• Не начисляются бонусы? Попробуйте переавторизацию  
+• Игра не загружается? Перезапустите бота
+
+💬 **Или просто напишите нам здесь!**
+            `, {parse_mode: 'Markdown'});
+            bot.answerCallbackQuery(callbackQuery.id, {text: "Поддержка!"});
             break;
     }
 });
+
 
 // Функция помощи
 function sendHelpMessage(chatId) {
