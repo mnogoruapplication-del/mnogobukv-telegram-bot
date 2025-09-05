@@ -159,10 +159,7 @@ bot.on('callback_query', (callbackQuery) => {
                     ]]
                 }
             });
-            bot.answerCallbackQuery(callbackQuery.id, {text: "Инструкция по балансу!"});
-            break;
-        case 'support':
-            bot.sendMessage(chatId, `
+        
 
 // Функция помощи
 function sendHelpMessage(chatId) {
