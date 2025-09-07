@@ -79,8 +79,7 @@ bot.on('callback_query', (callbackQuery) => {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [[
-                        {text: '🎮 Открыть игру', web_app: {url: GAME_URL}},
-                        {text: '🏠 В главное меню', callback_data: 'start'}
+                        {text: '🎮 Открыть игру', web_app: {url: GAME_URL}}
                     ]]
                 }
             });
@@ -102,12 +101,15 @@ bot.on('callback_query', (callbackQuery) => {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [[
-                        {text: '🎮 Открыть игру', web_app: {url: GAME_URL}},
-                        {text: '🏠 В главное меню', callback_data: 'start'}
+                        {text: '🎮 Открыть игру', web_app: {url: GAME_URL}}
                     ]]
                 }
             });
             break;
+            
+        // УБИРАЕМ case 'start' - он дублирует команду /start
+    }
+});
             
         case 'start':
             // Возврат в главное меню
