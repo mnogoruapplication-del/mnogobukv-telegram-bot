@@ -1,3 +1,4 @@
+```javascript
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const cors = require('cors');
@@ -5,29 +6,58 @@ const cors = require('cors');
 // Конфигурация
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const PORT = process.env.PORT || 3000;
-const GAME_URL = process.env.GAME_URL || 'https://your-app.netlify.app';
+const GAME_URL = process.env.GAME_URL || 'https://jolly-druid-a73d54.netlify.app/';
+const WEBHOOK_URL = process.env.RENDER_EXTERNAL_URL + `/webhook/${BOT_TOKEN}`;
 
 if (!BOT_TOKEN) {
     console.error('❌ BOT_TOKEN не установлен!');
     process.exit(1);
 }
 
-// Создание бота и сервера
-const bot = new TelegramBot(BOT_TOKEN, {polling: true});
+// Создание бота БЕЗ polling
+const bot = new TelegramBot(BOT_TOKEN);
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-console.log('🤖 Бот запускается...');
+console.log('🤖 Бот запускается в режиме WEBHOOK...');
+
+// Настройка webhook
+async function setupWebhook() {
+    try {
+        // Удаляем старый webhook
+        await bot.deleteWebHook();
+        console.log('🗑️ Старый webhook удален');
+        
+        // Устанавливаем новый webhook
+        const webhookSet = await bot.setWebHook(WEBHOOK_URL);
+        console.log('🔗 Webhook установлен:', webhookSet);
+        console.log('📡 Webhook URL:', WEBHOOK_URL);
+        
+        // Проверяем статус webhook
+        const webhookInfo = await bot.getWebHookInfo();
+        console.log('✅ Webhook статус:', webhookInfo);
+        
+    } catch (error) {
+        console.error('❌ Ошибка настройки webhook:', error);
+    }
+}
+
+// Webhook endpoint для получения сообщений от Telegram
+app.post(`/webhook/${BOT_TOKEN}`, (req, res) => {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+});
 
 // Команда /start
-bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    const userName = msg.from.first_name || 'Друг';
-    
-    bot.sendMessage(chatId, `🎯 **Что умеет этот бот?**
+bot.on('message', (msg) => {
+    if (msg.text === '/start') {
+        const chatId = msg.chat.id;
+        const userName = msg.from.first_name || 'Друг';
+        
+        bot.sendMessage(chatId, `🎯 **Что умеет этот бот?**
 
 Здравствуйте, ${userName}! Спасибо что выбрали нас! :)
 
@@ -36,22 +66,23 @@ bot.onText(/\/start/, (msg) => {
 Чтобы забрать подарок, нужно нажать на кнопку "начать" и сыграть в небольшую игру! 
 
 🎮 Готовы начать?`, {
-        parse_mode: 'Markdown',
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    {text: '🎮 Начать игру', web_app: {url: GAME_URL}}
-                ],
-                [
-                    {text: '💡 Помощь', callback_data: 'help'},
-                    {text: '💰 Баланс', callback_data: 'balance'}
-                ],
-                [
-                    {text: '🆘 Поддержка', callback_data: 'support'}
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        {text: '🎮 Начать игру', web_app: {url: GAME_URL}}
+                    ],
+                    [
+                        {text: '💡 Помощь', callback_data: 'help'},
+                        {text: '💰 Баланс', callback_data: 'balance'}
+                    ],
+                    [
+                        {text: '🆘 Поддержка', callback_data: 'support'}
+                    ]
                 ]
-            ]
-        }
-    });
+            }
+        });
+    }
 });
 
 // Обработка inline кнопок
@@ -79,8 +110,7 @@ bot.on('callback_query', (callbackQuery) => {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [[
-                        {text: '🎮 Открыть игру', web_app: {url: GAME_URL}},
-                        {text: '🏠 В главное меню', callback_data: 'start'}
+                        {text: '🎮 Открыть игру', web_app: {url: GAME_URL}}
                     ]]
                 }
             });
@@ -102,39 +132,8 @@ bot.on('callback_query', (callbackQuery) => {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [[
-                        {text: '🎮 Открыть игру', web_app: {url: GAME_URL}},
-                        {text: '🏠 В главное меню', callback_data: 'start'}
+                        {text: '🎮 Открыть игру', web_app: {url: GAME_URL}}
                     ]]
-                }
-            });
-            break;
-            
-        case 'start':
-            // Возврат в главное меню
-            const userName = callbackQuery.from.first_name || 'Друг';
-            bot.sendMessage(chatId, `🎯 **Что умеет этот бот?**
-
-Здравствуйте, ${userName}! Спасибо что выбрали нас! :)
-
-Это бот, который раздает подарки нашим покупателям.
-
-Чтобы забрать подарок, нужно нажать на кнопку "начать" и сыграть в небольшую игру! 
-
-🎮 Готовы начать?`, {
-                parse_mode: 'Markdown',
-                reply_markup: {
-                    inline_keyboard: [
-                        [
-                            {text: '🎮 Начать игру', web_app: {url: GAME_URL}}
-                        ],
-                        [
-                            {text: '💡 Помощь', callback_data: 'help'},
-                            {text: '💰 Баланс', callback_data: 'balance'}
-                        ],
-                        [
-                            {text: '🆘 Поддержка', callback_data: 'support'}
-                        ]
-                    ]
                 }
             });
             break;
@@ -168,8 +167,7 @@ function sendHelpMessage(chatId) {
                     {text: '🎮 Играть сейчас!', web_app: {url: GAME_URL}}
                 ],
                 [
-                    {text: '💰 Баланс', callback_data: 'balance'},
-                    {text: '🏠 В главное меню', callback_data: 'start'}
+                    {text: '💰 Баланс', callback_data: 'balance'}
                 ]
             ]
         }
@@ -220,7 +218,8 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        bot_status: 'running'
+        bot_status: 'webhook',
+        webhook_url: WEBHOOK_URL
     });
 });
 
@@ -228,15 +227,19 @@ app.get('/', (req, res) => {
     res.json({ 
         message: 'Wordly Telegram Bot Server',
         status: 'running',
+        mode: 'webhook',
         endpoints: ['/health', '/api/auth', '/api/game-events']
     });
 });
 
 // Запуск сервера
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`🚀 Сервер запущен на порту ${PORT}`);
-    console.log(`🤖 Telegram бот активен`);
     console.log(`🎮 Game URL: ${GAME_URL}`);
+    
+    // Настраиваем webhook после запуска сервера
+    await setupWebhook();
+    console.log('✅ Бот готов к работе в режиме webhook');
 });
 
 // Обработка ошибок
@@ -247,3 +250,18 @@ bot.on('error', (error) => {
 process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection:', reason);
 });
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('🛑 Получен сигнал завершения работы...');
+    try {
+        await bot.deleteWebHook();
+        console.log('🗑️ Webhook удален при завершении');
+    } catch (error) {
+        console.error('❌ Ошибка удаления webhook:', error);
+    }
+    process.exit(0);
+});
+```
+
+**Обновите код и перезапустите - бот будет работать стабильно!**
