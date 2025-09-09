@@ -5,11 +5,11 @@ const cors = require('cors');
 // Конфигурация
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const PORT = process.env.PORT || 3000;
-const GAME_URL = process.env.GAME_URL || 'https://jolly-druid-a73d54.netlify.app/';
+const GAME_URL = process.env.GAME_URL || 'https://your-app.netlify.app';
 const WEBHOOK_URL = process.env.RENDER_EXTERNAL_URL + '/webhook/' + BOT_TOKEN;
 
 if (!BOT_TOKEN) {
-    console.error('BOT_TOKEN не установлен!');
+    console.error('❌ BOT_TOKEN не установлен!');
     process.exit(1);
 }
 
@@ -21,23 +21,23 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log('Бот запускается в режиме WEBHOOK...');
+console.log('🤖 Бот запускается в режиме WEBHOOK...');
 
 // Настройка webhook
 async function setupWebhook() {
     try {
         await bot.deleteWebHook();
-        console.log('Старый webhook удален');
+        console.log('🗑️ Старый webhook удален');
         
         const webhookSet = await bot.setWebHook(WEBHOOK_URL);
-        console.log('Webhook установлен:', webhookSet);
-        console.log('Webhook URL:', WEBHOOK_URL);
+        console.log('🔗 Webhook установлен:', webhookSet);
+        console.log('📡 Webhook URL:', WEBHOOK_URL);
         
         const webhookInfo = await bot.getWebHookInfo();
-        console.log('Webhook статус:', webhookInfo);
+        console.log('✅ Webhook статус:', webhookInfo);
         
     } catch (error) {
-        console.error('Ошибка настройки webhook:', error);
+        console.error('❌ Ошибка настройки webhook:', error);
     }
 }
 
@@ -53,28 +53,30 @@ bot.on('message', (msg) => {
         const chatId = msg.chat.id;
         const userName = msg.from.first_name || 'Друг';
         
-        const welcomeText = 'Что умеет этот бот?
+        // ПРАВИЛЬНО: Используем backticks для многострочных строк
+        const welcomeText = `🎯 **Что умеет этот бот?**
 
-Здравствуйте, ' + userName + '! Спасибо что выбрали нас!
+Здравствуйте, ${userName}! Спасибо что выбрали нас! :)
 
 Это бот, который раздает подарки нашим покупателям.
 
-Чтобы забрать подарок, нужно нажать на кнопку "начать" и сыграть в небольшую игру!
+Чтобы забрать подарок, нужно нажать на кнопку "начать" и сыграть в небольшую игру! 
 
-Готовы начать?';
+🎮 Готовы начать?`;
         
         bot.sendMessage(chatId, welcomeText, {
+            parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
                     [
-                        {text: 'Начать игру', web_app: {url: GAME_URL}}
+                        {text: '🎮 Начать игру', web_app: {url: GAME_URL}}
                     ],
                     [
-                        {text: 'Помощь', callback_data: 'help'},
-                        {text: 'Баланс', callback_data: 'balance'}
+                        {text: '💡 Помощь', callback_data: 'help'},
+                        {text: '💰 Баланс', callback_data: 'balance'}
                     ],
                     [
-                        {text: 'Поддержка', callback_data: 'support'}
+                        {text: '🆘 Поддержка', callback_data: 'support'}
                     ]
                 ]
             }
@@ -95,42 +97,44 @@ bot.on('callback_query', (callbackQuery) => {
             break;
             
         case 'balance':
-            const balanceText = 'Проверка баланса
+            const balanceText = `💰 **Проверка баланса**
 
 Для просмотра актуального баланса:
-1. Откройте игру
-2. Авторизуйтесь номером карты
-3. Баланс отобразится в приложении
+1️⃣ Откройте игру
+2️⃣ Авторизуйтесь номером карты
+3️⃣ Баланс отобразится в приложении
 
-Играйте и зарабатывайте бонусы!';
+🎯 Играйте и зарабатывайте бонусы!`;
             
             bot.sendMessage(chatId, balanceText, {
+                parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [[
-                        {text: 'Открыть игру', web_app: {url: GAME_URL}}
+                        {text: '🎮 Открыть игру', web_app: {url: GAME_URL}}
                     ]]
                 }
             });
             break;
             
         case 'support':
-            const supportText = 'Техническая поддержка
+            const supportText = `🆘 **Техническая поддержка**
 
-Контакты:
+📞 **Контакты:**
 • Email: support@club.com
 • Время: Пн-Пт 9:00-18:00
 
-Частые проблемы:
+❓ **Частые проблемы:**
 • Не работает авторизация? Проверьте номер карты
 • Не начисляются бонусы? Попробуйте переавторизацию
 • Игра не загружается? Перезапустите бота
 
-Или просто напишите нам здесь!';
+💬 **Или просто напишите нам здесь!**`;
             
             bot.sendMessage(chatId, supportText, {
+                parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [[
-                        {text: 'Открыть игру', web_app: {url: GAME_URL}}
+                        {text: '🎮 Открыть игру', web_app: {url: GAME_URL}}
                     ]]
                 }
             });
@@ -140,33 +144,34 @@ bot.on('callback_query', (callbackQuery) => {
 
 // Функция помощи
 function sendHelpMessage(chatId) {
-    const helpText = 'ПРАВИЛА ИГРЫ
+    const helpText = `🎯 **ПРАВИЛА ИГРЫ**
 
-Как играть:
-• Угадайте слово из 5 букв за 6 попыток
-• Цвета подсказывают:
-  Зеленый - буква на правильном месте
-  Желтый - буква есть в слове, но не там
-  Серый - буквы нет в слове
+📝 **Как играть:**
+🔸 Угадайте слово из 5 букв за 6 попыток
+🔸 Цвета подсказывают:
+  🟢 **Зеленый** - буква на правильном месте
+  🟡 **Желтый** - буква есть в слове, но не там
+  ⚫ **Серый** - буквы нет в слове
 
-Бонусы:
-• Победа: +50 бонусов
-• Участие: +10 бонусов
-• Тратьте бонусы в нашем клубе!
+💰 **Бонусы:**
+🏆 **Победа:** +50 бонусов
+🎯 **Участие:** +10 бонусов
+💎 **Тратьте бонусы в нашем клубе!**
 
-Авторизация:
+🔐 **Авторизация:**
 • Введите номер карты клуба
 • Укажите дату рождения
-• Прогресс сохранится автоматически';
+• Прогресс сохранится автоматически`;
     
     bot.sendMessage(chatId, helpText, {
+        parse_mode: 'Markdown',
         reply_markup: {
             inline_keyboard: [
                 [
-                    {text: 'Играть сейчас!', web_app: {url: GAME_URL}}
+                    {text: '🎮 Играть сейчас!', web_app: {url: GAME_URL}}
                 ],
                 [
-                    {text: 'Баланс', callback_data: 'balance'}
+                    {text: '💰 Баланс', callback_data: 'balance'}
                 ]
             ]
         }
@@ -177,7 +182,7 @@ function sendHelpMessage(chatId) {
 app.post('/api/auth', async (req, res) => {
     try {
         const { card_number, birth_date, telegram_user_id } = req.body;
-        console.log('Попытка авторизации:', { card_number, telegram_user_id });
+        console.log('🔐 Попытка авторизации:', { card_number, telegram_user_id });
 
         if (card_number && birth_date) {
             res.json({
@@ -195,7 +200,7 @@ app.post('/api/auth', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Ошибка авторизации:', error);
+        console.error('❌ Ошибка авторизации:', error);
         res.status(500).json({ success: false, message: 'Ошибка сервера' });
     }
 });
@@ -204,10 +209,10 @@ app.post('/api/auth', async (req, res) => {
 app.post('/api/game-events', async (req, res) => {
     try {
         const eventData = req.body;
-        console.log('Игровое событие:', eventData);
+        console.log('🎮 Игровое событие:', eventData);
         res.json({ success: true, message: 'Событие сохранено' });
     } catch (error) {
-        console.error('Ошибка события:', error);
+        console.error('❌ Ошибка события:', error);
         res.status(500).json({ success: false, message: 'Ошибка сохранения' });
     }
 });
@@ -233,30 +238,30 @@ app.get('/', (req, res) => {
 
 // Запуск сервера
 app.listen(PORT, async () => {
-    console.log('Сервер запущен на порту ' + PORT);
-    console.log('Game URL: ' + GAME_URL);
+    console.log('🚀 Сервер запущен на порту ' + PORT);
+    console.log('🎮 Game URL: ' + GAME_URL);
     
     await setupWebhook();
-    console.log('Бот готов к работе в режиме webhook');
+    console.log('✅ Бот готов к работе в режиме webhook');
 });
 
 // Обработка ошибок
 bot.on('error', (error) => {
-    console.error('Ошибка бота:', error);
+    console.error('❌ Ошибка бота:', error);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection:', reason);
+    console.error('❌ Unhandled Rejection:', reason);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-    console.log('Получен сигнал завершения работы...');
+    console.log('🛑 Получен сигнал завершения работы...');
     try {
         await bot.deleteWebHook();
-        console.log('Webhook удален при завершении');
+        console.log('🗑️ Webhook удален при завершении');
     } catch (error) {
-        console.error('Ошибка удаления webhook:', error);
+        console.error('❌ Ошибка удаления webhook:', error);
     }
     process.exit(0);
 });
