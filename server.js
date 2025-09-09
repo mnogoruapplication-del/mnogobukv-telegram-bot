@@ -5,7 +5,7 @@ const cors = require('cors');
 // Конфигурация
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const PORT = process.env.PORT || 3000;
-const GAME_URL = process.env.GAME_URL || 'https://your-app.netlify.app';
+const GAME_URL = process.env.GAME_URL || 'https://jolly-druid-a73d54.netlify.app/';
 const WEBHOOK_URL = process.env.RENDER_EXTERNAL_URL + '/webhook/' + BOT_TOKEN;
 
 if (!BOT_TOKEN) {
